@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Menu Buku Digital (Flip Book)</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #111;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .book {
+      width: 85%;
+      max-width: 600px;
+      aspect-ratio: 3 / 4;
+      position: relative;
+      perspective: 2000px;
+    }
+
+    .page {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background-size: cover;
+      background-position: center;
+      transform-origin: left center;
+      transform-style: preserve-3d;
+      transition: transform 0.8s ease;
+      border-radius: 14px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    }
+
+    .page::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to right, rgba(0,0,0,0.25), transparent 40%);
+      pointer-events: none;
+    }
+
+    .page.flipped {
+      transform: rotateY(-180deg);
+    }
+
+    .indicator {
+      position: absolute;
+      bottom: -30px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 6px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.4);
+    }
+
+    .dot.active {
+      background: #fff;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="book" id="book">
+    <div class="page" style="background-image: url('page1.jpg'); z-index:8"></div>
+    <div class="page" style="background-image: url('page2.jpg'); z-index:7"></div>
+    <div class="page" style="background-image: url('page3.jpg'); z-index:6"></div>
+    <div class="page" style="background-image: url('page4.jpg'); z-index:5"></div>
+    <div class="page" style="background-image: url('page5.jpg'); z-index:4"></div>
+    <div class="page" style="background-image: url('page6.jpg'); z-index:3"></div>
+    <div class="page" style="background-image: url('page7.jpg'); z-index:2"></div>
+    <div class="page" style="background-image: url('page8.jpg'); z-index:1"></div>
+    <div class="indicator" id="indicator"></div>
+  </div>
+
+  <script>
+    const book = document.getElementById('book');
+    const pages = [...document.querySelectorAll('.page')];
+    const indicator = document.getElementById('indicator');
+    const total = pages.length;
+
+    let current = 0;
+    let startX = 0;
+    let dragging = false;
+
+    // indikator
+    for (let i = 0; i < total; i++) {
+      const dot = document.createElement('div');
+      dot.className = 'dot' + (i === 0 ? ' active' : '');
+      indicator.appendChild(dot);
+    }
+
+    function updateIndicator() {
+      [...indicator.children].forEach((d, i) => d.classList.toggle('active', i === current));
+    }
+
+    function nextPage() {
+      if (current < total - 1) {
+        pages[current].classList.add('flipped');
+        current++;
+        updateIndicator();
+      }
+    }
+
+    function prevPage() {
+      if (current > 0) {
+        current--;
+        pages[current].classList.remove('flipped');
+        updateIndicator();
+      }
+    }
+
+    // swipe touch
+    book.addEventListener('touchstart', e => {
+      startX = e.touches[0].clientX;
+      dragging = true;
+    });
+
+    book.addEventListener('touchend', e => {
+      if (!dragging) return;
+      const diff = e.changedTouches[0].clientX - startX;
+      if (diff < -60) nextPage();
+      if (diff > 60) prevPage();
+      dragging = false;
+    });
+
+    // mouse swipe
+    book.addEventListener('mousedown', e => {
+      startX = e.clientX;
+      dragging = true;
+    });
+
+    book.addEventListener('mouseup', e => {
+      if (!dragging) return;
+      const diff = e.clientX - startX;
+      if (diff < -60) nextPage();
+      if (diff > 60) prevPage();
+      dragging = false;
+    });
+  </script>
+
+</body>
+</html>
